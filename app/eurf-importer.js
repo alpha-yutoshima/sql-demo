@@ -35,7 +35,7 @@ class EurfImporter extends Writable {
       chunk['年齢'],
       chunk['値']
     ]);
-      
+
     callback();
   }
 
@@ -58,17 +58,17 @@ class EurfImporter extends Writable {
     const filename = params.dirent.name;
     const [year] = path.basename(filename).split(/[\-\.]/);
     const tableName = `eurf310005_${year}`;
-  
+
     const reader = fs.createReadStream(`${params.dirent.parentPath}/${filename}`);
     const parser = csv();
     const csvImporter = new EurfImporter(params.conn, tableName);
-  
+
     // テーブルの作成
     await EurfImporter._createTable(params.conn, tableName);
-  
+
     // トランザクションの開始
-    // await params.conn.query('.....');
-  
+    await params.conn.query('start transaction');
+
     await pipeline(
       // CSVファイルから読み込む
       reader,
@@ -77,9 +77,9 @@ class EurfImporter extends Writable {
       // データベースに取り込む
       csvImporter,
     );
-  
+
     // コミットする
-    // await params.conn.query('....');
+    await params.conn.query('commit');
   }
 }
 
